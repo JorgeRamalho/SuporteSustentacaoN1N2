@@ -4,10 +4,6 @@ export const LOCAL_CONSOLE_URL = "http://127.0.0.1:5500/index.html";
 
 const CONSOLE_PORTS = new Set(["5500", "5501", "5502"]);
 
-export const DEMO_SITE_NOTICE =
-  "Modo demonstração (GitHub Pages): dados de exemplo, sem API na nuvem. Laboratório completo no seu PC — npm start na raiz e " +
-  LOCAL_CONSOLE_URL;
-
 function isFileFront() {
   if (typeof window === "undefined") return false;
   return window.location.protocol === "file:";

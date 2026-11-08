@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, canLoadData, DEMO_SITE_NOTICE, isDemoHost, localLabHelp } from "./api";
+import { api, canLoadData, localLabHelp } from "./api";
 import Automacao from "./panels/Automacao";
 import Chamados from "./panels/Chamados";
 import Conhecimento from "./panels/Conhecimento";
@@ -45,7 +45,6 @@ export default function App() {
   const [health, setHealth] = useState(null);
   const [offline, setOffline] = useState(false);
   const [notice, setNotice] = useState(null);
-  const demoMode = isDemoHost();
 
   const notify = useCallback((message, kind = "ok") => {
     setNotice({ message, kind });
@@ -109,11 +108,6 @@ export default function App() {
             <span className={health.simulate ? "pill" : "pill bad"}>{health.simulate ? "Modo seguro" : "Ação real habilitada"}</span>
           ) : null}
         </header>
-        {demoMode ? (
-          <p className="notice" role="status">
-            {DEMO_SITE_NOTICE}
-          </p>
-        ) : null}
         {offline ? (
           <p className="notice bad" role="alert">
             {localLabHelp()}
