@@ -75,6 +75,10 @@ Mapa completo de pastas: `docs/estrutura-do-projeto.md`.
 
 O endereço `https://jorgeramalho.github.io/SuporteSustentacaoN1N2/` abre o console em **modo demonstração** (dados em `frontend/demo/api-snapshot.json`, sem API na nuvem). Atualize o snapshot com `scripts/export-demo.ps1` (com a API local na 8010) antes do commit. O laboratório completo continua em `npm start` e `http://127.0.0.1:5500/index.html` no seu PC.
 
+### Vercel e incidentes que “não salvam”
+
+Se o site público só mostra o console (por exemplo `https://suportesustentacaon1n2.vercel.app/`) e **Incidentes** não persiste, a causa é a ausência da API Python — não é bug do formulário. Depois do deploy com o bundle atual, o modo demo grava no **localStorage**; para banco compartilhado, publique a API (Render + `render.yaml`) e configure o `vercel.json`. Passo a passo: **`docs/deploy-publicacao.md`**.
+
 ### Feedback no console
 
 | Faixa no topo | Significado |

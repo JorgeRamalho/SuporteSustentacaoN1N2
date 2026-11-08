@@ -19,7 +19,8 @@
         }
         var local =
           location.protocol === "file:" || host === "127.0.0.1" || host === "localhost";
-        if (!local) {
+        var forceDemo = /(?:^|[?&])demo=1(?:&|$)/.test(location.search);
+        if (/\.github\.io$/i.test(host) || forceDemo) {
           window.SENTINELA_DEMO_MODE = true;
         }
       })();

@@ -42,8 +42,9 @@ app.add_middleware(
         "http://localhost:5502",
         "http://127.0.0.1:8010",
         "http://localhost:8010",
+        "https://suportesustentacaon1n2.vercel.app",
     ],
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|https://[\w.-]+\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )

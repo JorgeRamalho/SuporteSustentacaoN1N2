@@ -1,3 +1,5 @@
+import { overlayDemoRead, writeDemoIncident } from "./demoStore.js";
+
 /** Origem oficial da API — sempre 127.0.0.1 (alinhada ao console e aos scripts). */
 const LOCAL_API_ORIGIN = "http://127.0.0.1:8010";
 export const LOCAL_CONSOLE_URL = "http://127.0.0.1:5500/index.html";
@@ -15,11 +17,66 @@ function isLoopbackHost() {
   return host === "127.0.0.1" || host === "localhost";
 }
 
-/** GitHub Pages e outros hosts públicos: console com snapshot local. */
-export function isDemoHost() {
+export function hasRemoteApi() {
   if (typeof window === "undefined") return false;
+  return Boolean(window.SENTINELA_API_ORIGIN);
+}
+
+/** Vercel e domínios públicos (sem GitHub Pages). */
+export function isPublishedConsole() {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname.toLowerCase();
+  if (isFileFront() || isLoopbackHost()) return false;
+  if (/\.github\.io$/i.test(host)) return false;
+  return true;
+}
+
+let publishedRuntime = null;
+let publishedRuntimePromise = null;
+
+function hardDemoHost() {
+  if (hasRemoteApi()) return false;
   if (window.SENTINELA_DEMO_MODE === true) return true;
   return /\.github\.io$/i.test(window.location.hostname);
+}
+
+/** Snapshot local ou fall-back quando /api não responde no ar. */
+export function isDemoHost() {
+  if (typeof window === "undefined") return false;
+  if (hardDemoHost()) return true;
+  if (publishedRuntime === "demo") return true;
+  return false;
+}
+
+async function ensurePublishedRuntime() {
+  if (publishedRuntime !== null) return publishedRuntime;
+  if (publishedRuntimePromise) return publishedRuntimePromise;
+  if (!isPublishedConsole() || hardDemoHost() || hasRemoteApi()) {
+    publishedRuntime = "api";
+    return publishedRuntime;
+  }
+  publishedRuntimePromise = (async () => {
+    try {
+      const response = await fetch(`${window.location.origin}/api/health`, { signal: AbortSignal.timeout(4000) });
+      const contentType = response.headers.get("content-type") || "";
+      if (response.ok && contentType.includes("application/json")) {
+        const payload = await response.json();
+        if (payload?.status === "ok") {
+          publishedRuntime = "api";
+          return publishedRuntime;
+        }
+      }
+    } catch {
+      /* Vercel sem rewrite ou API fora do ar */
+    }
+    publishedRuntime = "demo";
+    return publishedRuntime;
+  })();
+  return publishedRuntimePromise;
+}
+
+export function publishedDemoHelp() {
+  return "Modo demonstração: os incidentes ficam salvos neste navegador (localStorage). Outro aparelho não vê as mesmas alterações. Para banco compartilhado, publique a API Python e o proxy — veja docs/deploy-publicacao.md na raiz do projeto.";
 }
 
 /** Onde a API Python está acessível (não inclui github.io). */
@@ -39,10 +96,13 @@ export function isPublishedSite() {
 }
 
 export function canLoadData() {
-  return isLocalLab() || isDemoHost();
+  return isLocalLab() || isDemoHost() || hasRemoteApi() || isPublishedConsole();
 }
 
 export function localLabHelp() {
+  if (isPublishedConsole() && isDemoHost()) {
+    return publishedDemoHelp();
+  }
   return `API ou console parados. Na raiz do projeto execute npm start ou scripts\\Abrir-Sentinela.cmd e abra ${LOCAL_CONSOLE_URL}. Depois recarregue (F5).`;
 }
 
@@ -52,6 +112,8 @@ export function apiRoot() {
   if (explicit) return String(explicit).replace(/\/$/, "");
   if (isDemoHost()) return "";
   if (isFileFront() || CONSOLE_PORTS.has(window.location.port)) return LOCAL_API_ORIGIN;
+  if (isPublishedConsole() && publishedRuntime === "api") return "";
+  if (isPublishedConsole()) return "";
   return "";
 }
 
@@ -90,21 +152,12 @@ function demoLookup(snapshot, path) {
   return undefined;
 }
 
-function demoWriteResponse(path, body) {
+function demoWriteResponse(path, body, snapshot) {
   if (path === "/api/health") {
     return { status: "ok", app: "Sentinela", version: "1.0.0", simulate: true, allow_real_actions: false };
   }
-  if (path.startsWith("/api/incidents") && path !== "/api/incidents/detect") {
-    const title = body?.title || "Incidente (demonstração)";
-    return {
-      id: `demo-${Date.now()}`,
-      title,
-      severity: "P3",
-      level: "N1",
-      status: "aberto",
-      summary: "[DEMO] Registro simulado.",
-    };
-  }
+  const incident = writeDemoIncident(path, body, snapshot);
+  if (incident) return incident;
   return { ok: true, simulate: true, message: "[DEMO] Operação simulada." };
 }
 
@@ -133,6 +186,9 @@ function errorMessage(payload) {
 }
 
 export async function api(path, options = {}) {
+  if (isPublishedConsole() && publishedRuntime === null && !hardDemoHost() && !hasRemoteApi()) {
+    await ensurePublishedRuntime();
+  }
   if (isDemoHost()) {
     const method = (options.method || "GET").toUpperCase();
     if (method !== "GET") {
@@ -144,14 +200,15 @@ export async function api(path, options = {}) {
           body = {};
         }
       }
-      return demoWriteResponse(path.split("?")[0], body);
+      const snapshot = await loadDemoSnapshot();
+      return demoWriteResponse(path.split("?")[0], body, snapshot);
     }
     const snapshot = await loadDemoSnapshot();
     const data = demoLookup(snapshot, path);
     if (data === undefined) {
       throw new Error(`[DEMO] Rota sem snapshot: ${path}`);
     }
-    return data;
+    return overlayDemoRead(path, data, snapshot);
   }
 
   const response = await fetch(`${apiRoot()}${path}`, {

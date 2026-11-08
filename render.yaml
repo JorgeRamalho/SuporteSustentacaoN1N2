@@ -1,0 +1,21 @@
+# Blueprint: API Python com disco persistente para SQLite em /app/data
+# Conecte o repositório em https://dashboard.render.com/blueprints
+services:
+  - type: web
+    name: sentinela-api
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: sentinela-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: SENTINELA_ROOT
+        value: /app
+      - key: SIMULATE
+        value: "true"
+      - key: ALLOW_REAL_ACTIONS
+        value: "false"

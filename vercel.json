@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://SUBSTITUA-PELA-URL-DA-SUA-API.onrender.com/api/:path*"
+    },
+    {
+      "source": "/docs",
+      "destination": "https://SUBSTITUA-PELA-URL-DA-SUA-API.onrender.com/docs"
+    },
+    {
+      "source": "/redoc",
+      "destination": "https://SUBSTITUA-PELA-URL-DA-SUA-API.onrender.com/redoc"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "https://SUBSTITUA-PELA-URL-DA-SUA-API.onrender.com/openapi.json"
+    }
+  ]
+}
