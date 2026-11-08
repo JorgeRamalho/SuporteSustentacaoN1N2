@@ -19,8 +19,7 @@
 
    (O console fica em index.html na RAIZ do projeto, não em frontend/.)
 
-4. NÃO use o endereço jorgeramalho.github.io para operar o painel.
-   Lá não existe API — é só publicação do código. O sistema real é o
-   passo 3 acima (127.0.0.1:5500 no seu PC).
+4. O endereço jorgeramalho.github.io abre DEMONSTRAÇÃO (dados de exemplo).
+   Para operar de verdade use o passo 3 (127.0.0.1:5500 no seu PC).
 
 ══════════════════════════════════════════════════════════════

@@ -73,7 +73,7 @@ Mapa completo de pastas: `docs/estrutura-do-projeto.md`.
 
 ### GitHub Pages
 
-O endereço `https://jorgeramalho.github.io/SuporteSustentacaoN1N2/` é **só vitrine do repositório**: o `index.html` da raiz mostra instruções e **não** carrega o painel com API. Para operar o Sentinela, use `npm start` na raiz e `http://127.0.0.1:5500/index.html` no seu PC. O bundle em `frontend/live-dist/` continua versionado para o deploy; o workflow `.github/workflows/github-pages-bundle.yml` recompila quando o React muda.
+O endereço `https://jorgeramalho.github.io/SuporteSustentacaoN1N2/` abre o console em **modo demonstração** (dados em `frontend/demo/api-snapshot.json`, sem API na nuvem). Atualize o snapshot com `scripts/export-demo.ps1` (com a API local na 8010) antes do commit. O laboratório completo continua em `npm start` e `http://127.0.0.1:5500/index.html` no seu PC.
 
 ### Feedback no console
 

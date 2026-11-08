@@ -9,6 +9,8 @@ on:
       - "frontend/package-lock.json"
       - "frontend/vite.live.config.js"
       - "frontend/index.html"
+      - "frontend/demo/**"
+      - "index.html"
       - ".github/workflows/github-pages-bundle.yml"
   workflow_dispatch:
 

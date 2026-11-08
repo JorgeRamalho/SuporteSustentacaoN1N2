@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { api, isLocalLab } from "./api";
+import { api, canLoadData } from "./api";
 
 export function useResource(path, tick) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!isLocalLab()) {
+    if (!canLoadData()) {
       setData(null);
       setError("");
       return undefined;
