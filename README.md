@@ -73,9 +73,7 @@ Mapa completo de pastas: `docs/estrutura-do-projeto.md`.
 
 ### GitHub Pages
 
-O site em `https://jorgeramalho.github.io/SuporteSustentacaoN1N2/` usa o `index.html` da raiz e o bundle em `frontend/live-dist/` (gerado por `npm run live:bundle`). Esse bundle **precisa estar no Git**; se aparecer “Falha ao carregar o console”, rode `npm run live:bundle` em `frontend`, faça commit de `frontend/live-dist/` e envie para o `main`. O workflow `.github/workflows/github-pages-bundle.yml` recompila automaticamente quando o React muda.
-
-O console estático **não inclui a API Python**: em produção no GitHub você verá o layout, mas dados e botões dependem da API local (`127.0.0.1:8010`) ou de um backend publicado à parte.
+O endereço `https://jorgeramalho.github.io/SuporteSustentacaoN1N2/` é **só vitrine do repositório**: o `index.html` da raiz mostra instruções e **não** carrega o painel com API. Para operar o Sentinela, use `npm start` na raiz e `http://127.0.0.1:5500/index.html` no seu PC. O bundle em `frontend/live-dist/` continua versionado para o deploy; o workflow `.github/workflows/github-pages-bundle.yml` recompila quando o React muda.
 
 ### Feedback no console
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api } from "./api";
+import { api, isLocalLab, isPublishedSite, localLabHelp, PUBLISHED_SITE_HELP } from "./api";
 import Automacao from "./panels/Automacao";
 import Chamados from "./panels/Chamados";
 import Conhecimento from "./panels/Conhecimento";
@@ -43,8 +43,9 @@ const SECTION_HEADINGS = {
 export default function App() {
   const [section, setSection] = useState("painel");
   const [health, setHealth] = useState(null);
-  const [offline, setOffline] = useState(false);
+  const [offline, setOffline] = useState(() => isPublishedSite());
   const [notice, setNotice] = useState(null);
+  const published = isPublishedSite();
 
   const notify = useCallback((message, kind = "ok") => {
     setNotice({ message, kind });
@@ -60,6 +61,7 @@ export default function App() {
   }
 
   useEffect(() => {
+    if (!isLocalLab()) return undefined;
     let active = true;
     api("/api/health")
       .then((data) => {
@@ -109,7 +111,7 @@ export default function App() {
         </header>
         {offline ? (
           <p className="notice bad" role="alert">
-            API ou console parados. Feche e reabra a pasta no Cursor (permita tarefas automáticas) ou rode <strong>npm start</strong> na raiz. Depois recarregue (F5).
+            {published ? PUBLISHED_SITE_HELP : localLabHelp()}
           </p>
         ) : null}
         {notice?.message ? (
@@ -118,7 +120,11 @@ export default function App() {
           </p>
         ) : null}
         <div className={current[0] === "conteudo" ? "workspace docs-workspace" : "workspace"}>
-          <Panel tick={tick} notify={notify} refresh={() => setTick((value) => value + 1)} navigate={navigate} />
+          {published ? (
+            <p className="empty">Nenhum dado aqui — use o console local conforme o aviso acima.</p>
+          ) : (
+            <Panel tick={tick} notify={notify} refresh={() => setTick((value) => value + 1)} navigate={navigate} />
+          )}
         </div>
       </main>
     </div>

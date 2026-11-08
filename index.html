@@ -4,9 +4,66 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sentinela · Sustentação N1/N2</title>
+    <script>
+      (function () {
+        var host = location.hostname.toLowerCase();
+        if (host === "localhost") {
+          location.replace(
+            "http://127.0.0.1:" +
+              (location.port || "5500") +
+              location.pathname +
+              location.search +
+              location.hash,
+          );
+          return;
+        }
+        var local =
+          location.protocol === "file:" || host === "127.0.0.1" || host === "localhost";
+        if (!local) {
+          window.__SENTINELA_PUBLISHED__ = true;
+        }
+      })();
+    </script>
+    <style>
+      .sentinela-published {
+        font-family: system-ui, sans-serif;
+        max-width: 40rem;
+        margin: 2rem auto;
+        line-height: 1.6;
+        padding: 1.5rem;
+        color: #e8ecf1;
+        background: #0f1419;
+      }
+      .sentinela-published a {
+        color: #7cb8ff;
+      }
+      .sentinela-published code {
+        font-size: 0.92em;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="./frontend/live-bootstrap.js"></script>
+    <script>
+      if (window.__SENTINELA_PUBLISHED__) {
+        document.getElementById("root").innerHTML =
+          '<article class="sentinela-published">' +
+          "<h1>Sentinela</h1>" +
+          "<p><strong>Este endereço na internet (GitHub Pages) não roda a API.</strong> " +
+          "O painel completo só funciona no seu computador, com o backend Python.</p>" +
+          "<ol>" +
+          "<li>Abra a pasta do projeto no Cursor.</li>" +
+          "<li>Na raiz, execute <code>npm start</code> ou dê duplo clique em <code>scripts\\Abrir-Sentinela.cmd</code>.</li>" +
+          '<li>Use <a href="http://127.0.0.1:5500/index.html">http://127.0.0.1:5500/index.html</a> (único endereço do console).</li>' +
+          "</ol>" +
+          "<p>O GitHub mostra o código; o laboratório N1/N2 fica no seu PC.</p>" +
+          "</article>";
+      } else {
+        var s = document.createElement("script");
+        s.type = "module";
+        s.src = "./frontend/live-bootstrap.js";
+        document.body.appendChild(s);
+      }
+    </script>
   </body>
 </html>
