@@ -7,14 +7,28 @@ function showError(message) {
   }
 }
 
+async function bundleVersion() {
+  try {
+    const stampUrl = new URL("./live-dist/build-version.txt", here);
+    const response = await fetch(stampUrl, { cache: "no-store" });
+    if (response.ok) return (await response.text()).trim();
+  } catch (_) {
+    /* ignore */
+  }
+  return String(Date.now());
+}
+
 async function start() {
   if (import.meta.env?.DEV) {
     await import("/frontend/src/main.jsx");
     return;
   }
 
+  const v = await bundleVersion();
   const cssUrl = new URL("./live-dist/live-bundle.css", here);
   const jsUrl = new URL("./live-dist/live-bundle.js", here);
+  cssUrl.searchParams.set("v", v);
+  jsUrl.searchParams.set("v", v);
 
   try {
     const sheet = document.createElement("link");
