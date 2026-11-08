@@ -1,0 +1,24 @@
+{
+  "name": "sentinela-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "live:bundle": "vite build -c vite.live.config.js",
+    "live:bundle:watch": "vite build -c vite.live.config.js --watch",
+    "live:prep": "npm run live:bundle",
+    "live:serve": "node ../scripts/live-console.cjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "live-server": "^1.2.2",
+    "vite": "^5.4.11"
+  }
+}

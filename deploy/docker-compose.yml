@@ -1,0 +1,41 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      SENTINELA_ROOT: /app
+      SIMULATE: "true"
+      ALLOW_REAL_ACTIONS: "false"
+    volumes:
+      - ../data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8088:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  jenkins:
+    profiles: ["jenkins"]
+    build: ../jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - ../:/workspace
+
+volumes:
+  jenkins_home:

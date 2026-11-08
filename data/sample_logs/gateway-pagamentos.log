@@ -1,0 +1,5 @@
+2026-11-07 08:14:02 FATAL [billing] OutOfMemoryError: Java heap space while processing lote 4491
+    at com.empresa.Faturamento.process
+Caused by: java.lang.OutOfMemoryError: Java heap space
+2026-11-07 08:15:10 ERROR [payments] java.net.SocketTimeoutException: Read timed out calling PagNorte /v2/capture
+2026-11-07 08:16:40 ERROR [payments] java.net.SocketTimeoutException: Read timed out calling PagNorte /v2/capture

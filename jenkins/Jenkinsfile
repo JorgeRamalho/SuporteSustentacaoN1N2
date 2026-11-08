@@ -1,0 +1,42 @@
+// Pipeline do laboratório. No Windows, o mesmo fluxo está em scripts/verificar.ps1.
+// Job Jenkins: tipo Pipeline from SCM, script path = jenkins/Jenkinsfile
+// A imagem jenkins/Dockerfile já traz Python e Node para o agente local.
+pipeline {
+    agent any
+    options { timestamps() }
+    parameters {
+        booleanParam(name: 'GERAR_RELATORIO', defaultValue: false, description: 'Gera o compilado semanal de SLA ao final.')
+    }
+    stages {
+        stage('Backend') {
+            steps {
+                sh '''
+                    python3 -m venv .venv-ci
+                    . .venv-ci/bin/activate
+                    pip install -r backend/requirements.txt
+                    cd backend
+                    pytest
+                '''
+            }
+        }
+        stage('Frontend') {
+            steps {
+                sh '''
+                    cd frontend
+                    npm install
+                    npm run build
+                '''
+            }
+        }
+        stage('Relatorio semanal') {
+            when { expression { return params.GERAR_RELATORIO } }
+            steps {
+                sh '''
+                    . .venv-ci/bin/activate
+                    cd backend
+                    python -m app.cli report --days 7
+                '''
+            }
+        }
+    }
+}

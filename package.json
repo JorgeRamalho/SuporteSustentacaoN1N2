@@ -1,0 +1,13 @@
+{
+  "name": "sentinela",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/garantir-ambiente.ps1",
+    "abrir": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/abrir.ps1",
+    "api": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/garantir-api.ps1",
+    "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/iniciar.ps1 && npm run dev --prefix frontend",
+    "docker:up": "docker compose -f deploy/docker-compose.yml up --build",
+    "docker:jenkins": "docker compose -f deploy/docker-compose.yml --profile jenkins up --build"
+  }
+}

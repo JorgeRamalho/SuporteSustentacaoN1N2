@@ -1,0 +1,6 @@
+2026-11-07 07:55:01 INFO [api] application started
+2026-11-07 12:04:55 ERROR [orders] deadlock detected while updating table pedidos
+2026-11-07 12:04:56 ERROR [orders] deadlock detected while updating table pedidos
+2026-11-07 12:05:10 ERROR [orders] deadlock detected while updating table pedidos
+    at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse
+Caused by: org.postgresql.util.PSQLException: deadlock detected

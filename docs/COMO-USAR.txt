@@ -1,0 +1,22 @@
+══════════════════════════════════════════════════════════════
+  SENTINELA — você não precisa fazer nada complicado
+══════════════════════════════════════════════════════════════
+
+1. Abra esta pasta no Cursor (ou VS Code), como você já faz.
+
+2. Se o editor perguntar sobre "tarefas automáticas", clique em
+   PERMITIR / ALLOW (só na primeira vez).
+
+3. Aguarde alguns segundos e use SOMENTE este endereço no navegador:
+
+      http://127.0.0.1:5500/index.html
+
+   (Se você digitar localhost:5500, o site redireciona sozinho para 127.0.0.1.)
+
+   Ou na raiz:  npm start   ou duplo clique em  scripts\Abrir-Sentinela.cmd
+
+   Não use o botão "Go Live" — ele não sobe a API.
+
+   (O console fica em index.html na RAIZ do projeto, não em frontend/.)
+
+══════════════════════════════════════════════════════════════
