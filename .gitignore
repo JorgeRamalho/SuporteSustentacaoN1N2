@@ -10,7 +10,7 @@ data/sandbox/temp/*
 !data/sandbox/temp/.gitkeep
 frontend/node_modules/
 frontend/dist/
-frontend/live-dist/
+# live-dist é commitado para o GitHub Pages (index.html na raiz usa live-bootstrap.js)
 frontend/live-bundle.js
 frontend/live-bundle.css
 frontend/public/live-bundle.js

@@ -71,6 +71,12 @@ O `index.html` carrega `frontend/live-bootstrap.js`: no Live Server ele usa o bu
 
 Mapa completo de pastas: `docs/estrutura-do-projeto.md`.
 
+### GitHub Pages
+
+O site em `https://jorgeramalho.github.io/SuporteSustentacaoN1N2/` usa o `index.html` da raiz e o bundle em `frontend/live-dist/` (gerado por `npm run live:bundle`). Esse bundle **precisa estar no Git**; se aparecer “Falha ao carregar o console”, rode `npm run live:bundle` em `frontend`, faça commit de `frontend/live-dist/` e envie para o `main`. O workflow `.github/workflows/github-pages-bundle.yml` recompila automaticamente quando o React muda.
+
+O console estático **não inclui a API Python**: em produção no GitHub você verá o layout, mas dados e botões dependem da API local (`127.0.0.1:8010`) ou de um backend publicado à parte.
+
 ### Feedback no console
 
 | Faixa no topo | Significado |
