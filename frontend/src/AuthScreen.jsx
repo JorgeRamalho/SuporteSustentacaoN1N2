@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { api, publishedLoginNotice } from "./api";
+import { useState } from "react";
+import { api } from "./api";
 import { writeSession } from "./auth";
 
 const ROLES = ["N1", "N2", "N3"];
@@ -40,19 +40,6 @@ export default function AuthScreen({ onAuthenticated }) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [siteNotice, setSiteNotice] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    publishedLoginNotice()
-      .then((text) => {
-        if (active && text) setSiteNotice(text);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, []);
 
   function go(next) {
     setView(next);
@@ -140,11 +127,6 @@ export default function AuthScreen({ onAuthenticated }) {
         </div>
         <h1>{heading[0]}</h1>
         <p className="muted">{heading[1]}</p>
-        {siteNotice ? (
-          <p className="notice" role="status">
-            {siteNotice}
-          </p>
-        ) : null}
         {error ? (
           <p className="notice bad" role="alert">
             {error}

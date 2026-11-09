@@ -81,18 +81,6 @@ export function publishedDemoHelp() {
   return "Modo demonstração: os incidentes ficam salvos neste navegador (localStorage). Outro aparelho não vê as mesmas alterações. Para banco compartilhado, publique a API Python e o proxy — veja docs/deploy-publicacao.md na raiz do projeto.";
 }
 
-/** Texto na tela de login quando o site público não usa a API do laboratório (127.0.0.1). */
-export async function publishedLoginNotice() {
-  if (!isPublishedConsole()) return null;
-  await ensurePublishedRuntime();
-  if (hasRemoteApi() || publishedRuntime === "api") return null;
-  return (
-    "Login neste endereço é independente do laboratório em http://127.0.0.1:5500. " +
-    "Usuários cadastrados no seu PC não existem aqui — use «Criar cadastro» nesta página. " +
-    "Para o mesmo banco e as mesmas contas em produção, publique a API (Render) e configure o vercel.json ou o arquivo frontend/sentinela-config.js (detalhes em docs/deploy-publicacao.md)."
-  );
-}
-
 export async function warmPublishedRuntime() {
   if (isPublishedConsole() && !hardDemoHost() && !hasRemoteApi()) {
     await ensurePublishedRuntime();
