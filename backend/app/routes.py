@@ -11,6 +11,8 @@ from app.database import get_db
 from app.errors import SentinelaError
 from app.models import AutomationRun, Incident, KnowledgeArticle, LogEvent, Ticket, Vendor
 from app.schemas import AutomationRequest, IncidentCreate, IncidentUpdate, ReportRequest, ScanRequest
+from app.services.access import require_min_role, require_operational_console
+from app.services.auth import require_user
 from app.services.automation import run_check
 from app.services.dashboard import build_dashboard
 from app.services.exporters import incidents_csv, incidents_json, logs_csv, logs_json
@@ -34,10 +36,11 @@ from app.services.serialize import (
 from app.services.status import refresh_statuses
 from app.timeutil import utcnow
 
-router = APIRouter()
+public_router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_user)])
 
 
-@router.get("/health", tags=["Painel"], summary="Saúde da API", description="Confirma se o serviço está no ar e se o modo seguro está ligado.")
+@public_router.get("/health", tags=["Painel"], summary="Saúde da API", description="Confirma se o serviço está no ar e se o modo seguro está ligado.")
 def health() -> dict:
     settings = get_settings()
     return {
@@ -49,19 +52,37 @@ def health() -> dict:
     }
 
 
-@router.get("/dashboard", tags=["Painel"], summary="Painel operacional", description="KPIs, leitura do host, serviços, incidentes recentes e alertas.")
+@router.get(
+    "/dashboard",
+    tags=["Painel"],
+    summary="Painel operacional",
+    description="KPIs, leitura do host, serviços, incidentes recentes e alertas.",
+    dependencies=[Depends(require_operational_console)],
+)
 def dashboard(db: Session = Depends(get_db)) -> dict:
     return build_dashboard(db, get_settings())
 
 
-@router.get("/logs", tags=["Logs"], summary="Listar eventos críticos", description="Devolve ERROR, FATAL e CRITICAL já coletados. INFO e DEBUG ficam de fora.")
+@router.get(
+    "/logs",
+    tags=["Logs"],
+    summary="Listar eventos críticos",
+    description="Devolve ERROR, FATAL e CRITICAL já coletados. INFO e DEBUG ficam de fora.",
+    dependencies=[Depends(require_operational_console)],
+)
 def list_logs(limit: int = Query(default=100, ge=1, le=500), db: Session = Depends(get_db)) -> dict:
     total = db.query(LogEvent).count()
     rows = db.query(LogEvent).order_by(LogEvent.logged_at.desc()).limit(limit).all()
     return {"total": total, "items": [dump_log(row) for row in rows]}
 
 
-@router.post("/logs/scan", tags=["Logs"], summary="Ler pasta de logs", description="Varre a pasta informada e grava só linhas novas de erro.")
+@router.post(
+    "/logs/scan",
+    tags=["Logs"],
+    summary="Ler pasta de logs",
+    description="Varre a pasta informada e grava só linhas novas de erro.",
+    dependencies=[Depends(require_operational_console)],
+)
 def scan_logs(payload: ScanRequest, db: Session = Depends(get_db)) -> dict:
     directory = resolve_api_log_dir(payload.directory, get_settings())
     stats = ingest_directory(db, directory)
@@ -69,7 +90,13 @@ def scan_logs(payload: ScanRequest, db: Session = Depends(get_db)) -> dict:
     return {"directory": directory.name, **stats}
 
 
-@router.get("/logs/export", tags=["Logs"], summary="Exportar erros", description="Gera CSV ou JSON dos eventos críticos, com filtro opcional de nível e serviço.")
+@router.get(
+    "/logs/export",
+    tags=["Logs"],
+    summary="Exportar erros",
+    description="Gera CSV ou JSON dos eventos críticos, com filtro opcional de nível e serviço.",
+    dependencies=[Depends(require_min_role("N3"))],
+)
 def export_logs(
     fmt: str = Query(default="csv", alias="format"),
     level: str | None = None,
@@ -97,7 +124,13 @@ def export_logs(
     )
 
 
-@router.post("/demo/reprocess", tags=["Logs"], summary="Relêr amostras", description="Volta a processar as amostras locais e reabre a fila de incidentes de demonstração.")
+@router.post(
+    "/demo/reprocess",
+    tags=["Logs"],
+    summary="Relêr amostras",
+    description="Volta a processar as amostras locais e reabre a fila de incidentes de demonstração.",
+    dependencies=[Depends(require_operational_console)],
+)
 def reprocess(db: Session = Depends(get_db)) -> dict:
     return reprocess_samples(db, get_settings())
 
@@ -105,7 +138,7 @@ def reprocess(db: Session = Depends(get_db)) -> dict:
 @router.get("/incidents", tags=["Incidentes"], summary="Listar incidentes", description="Fila N1/N2 com procedimento e fornecedor associados.")
 def list_incidents(db: Session = Depends(get_db)) -> dict:
     articles, vendors = load_maps(db)
-    rows = db.query(Incident).order_by(Incident.opened_at.desc()).all()
+    rows = db.query(Incident).order_by(Incident.code.asc()).all()
     return {"items": [dump_incident(row, articles, vendors) for row in rows]}
 
 
@@ -138,7 +171,13 @@ def update_incident(incident_id: int, payload: IncidentUpdate, db: Session = Dep
     return dump_incident(row, articles, vendors)
 
 
-@router.get("/automation/host", tags=["Automação"], summary="Leitura do host", description="Disco, memória e CPU desta máquina, com os limiares configurados.")
+@router.get(
+    "/automation/host",
+    tags=["Automação"],
+    summary="Leitura do host",
+    description="Disco, memória e CPU desta máquina, com os limiares configurados.",
+    dependencies=[Depends(require_operational_console)],
+)
 def host() -> dict:
     settings = get_settings()
     payload = read_host(settings.root)
@@ -149,13 +188,25 @@ def host() -> dict:
     return payload
 
 
-@router.get("/automation/runs", tags=["Automação"], summary="Histórico de ensaios", description="Últimas ações de automação. No modo seguro só há ensaio.")
+@router.get(
+    "/automation/runs",
+    tags=["Automação"],
+    summary="Histórico de ensaios",
+    description="Últimas ações de automação. No modo seguro só há ensaio.",
+    dependencies=[Depends(require_min_role("N2"))],
+)
 def runs(db: Session = Depends(get_db)) -> dict:
     rows = db.query(AutomationRun).order_by(AutomationRun.created_at.desc()).limit(30).all()
     return {"items": [dump_run(row) for row in rows]}
 
 
-@router.post("/automation/run", tags=["Automação"], summary="Ensaio de disco e memória", description="Compara os percentuais com os limiares. Limpeza real só com as duas travas desligadas.")
+@router.post(
+    "/automation/run",
+    tags=["Automação"],
+    summary="Ensaio de disco e memória",
+    description="Compara os percentuais com os limiares. Limpeza real só com as duas travas desligadas.",
+    dependencies=[Depends(require_min_role("N2"))],
+)
 def automate(payload: AutomationRequest, db: Session = Depends(get_db)) -> dict:
     return run_check(db, get_settings(), payload.disk_percent, payload.memory_percent)
 
@@ -184,17 +235,35 @@ def sync(db: Session = Depends(get_db)) -> dict:
     return {"synced": count}
 
 
-@router.post("/tickets/report", tags=["Chamados"], summary="Relatório semanal", description="Compila o relatório da janela e grava em data/reports.")
+@router.post(
+    "/tickets/report",
+    tags=["Chamados"],
+    summary="Relatório semanal",
+    description="Compila o relatório da janela e grava em data/reports.",
+    dependencies=[Depends(require_min_role("N3"))],
+)
 def report(payload: ReportRequest, db: Session = Depends(get_db)) -> dict:
     return weekly_report(db, get_settings(), payload.days, payload.provider)
 
 
-@router.get("/reports/options", tags=["Relatórios"], summary="Opções de filtro", description="Listas de nível, serviço, fila e ferramenta para montar relatórios.")
+@router.get(
+    "/reports/options",
+    tags=["Relatórios"],
+    summary="Opções de filtro",
+    description="Listas de nível, serviço, fila e ferramenta para montar relatórios.",
+    dependencies=[Depends(require_min_role("N3"))],
+)
 def report_options(db: Session = Depends(get_db)) -> dict:
     return report_filter_options(db)
 
 
-@router.get("/reports/preview", tags=["Relatórios"], summary="Pré-visualizar contagem", description="Conta quantos registros entram no relatório com os filtros escolhidos.")
+@router.get(
+    "/reports/preview",
+    tags=["Relatórios"],
+    summary="Pré-visualizar contagem",
+    description="Conta quantos registros entram no relatório com os filtros escolhidos.",
+    dependencies=[Depends(require_min_role("N3"))],
+)
 def report_preview(
     kind: str = Query(..., pattern="^(logs|incidents|sla)$"),
     level: str | None = None,
@@ -224,7 +293,13 @@ def report_preview(
     return {"kind": kind, "count": metrics["considered"], "metrics": metrics}
 
 
-@router.get("/incidents/export", tags=["Relatórios"], summary="Exportar incidentes", description="CSV ou JSON da fila com filtros de fila, severidade e status.")
+@router.get(
+    "/incidents/export",
+    tags=["Relatórios"],
+    summary="Exportar incidentes",
+    description="CSV ou JSON da fila com filtros de fila, severidade e status.",
+    dependencies=[Depends(require_min_role("N3"))],
+)
 def export_incidents(
     fmt: str = Query(default="csv", alias="format"),
     queue: str | None = None,
@@ -253,7 +328,13 @@ def export_incidents(
     )
 
 
-@router.get("/kb", tags=["Conhecimento"], summary="Buscar procedimentos", description="Artigos de procedimento que o N1 executa antes de escalar.")
+@router.get(
+    "/kb",
+    tags=["Conhecimento"],
+    summary="Buscar procedimentos",
+    description="Artigos de procedimento que o N1 executa antes de escalar.",
+    dependencies=[Depends(require_operational_console)],
+)
 def knowledge(q: str = "", db: Session = Depends(get_db)) -> dict:
     _, vendors = load_maps(db)
     articles = db.query(KnowledgeArticle).order_by(KnowledgeArticle.title).all()
@@ -271,7 +352,13 @@ def knowledge(q: str = "", db: Session = Depends(get_db)) -> dict:
     return {"items": [dump_article(article, vendors) for article in articles]}
 
 
-@router.get("/vendors", tags=["Fornecedores"], summary="Listar fornecedores", description="Contrato, contato de escalonamento e sinais de log de cada fornecedor.")
+@router.get(
+    "/vendors",
+    tags=["Fornecedores"],
+    summary="Listar fornecedores",
+    description="Contrato, contato de escalonamento e sinais de log de cada fornecedor.",
+    dependencies=[Depends(require_operational_console)],
+)
 def vendors(db: Session = Depends(get_db)) -> dict:
     rows = db.query(Vendor).order_by(Vendor.name).all()
     return {"items": [dump_vendor(row) for row in rows]}

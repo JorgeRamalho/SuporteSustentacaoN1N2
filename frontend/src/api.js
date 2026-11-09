@@ -1,3 +1,5 @@
+import { assertApiAccess } from "./access.js";
+import { authHeaders, handleDemoAuth, notifyAuthLost } from "./auth.js";
 import { overlayDemoRead, writeDemoIncident } from "./demoStore.js";
 
 /** Origem oficial da API — sempre 127.0.0.1 (alinhada ao console e aos scripts). */
@@ -185,12 +187,38 @@ function errorMessage(payload) {
   return "A API recusou a operação.";
 }
 
+function requestHeaders(options) {
+  return {
+    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    ...authHeaders(),
+    ...(options.headers || {}),
+  };
+}
+
+function reject(payload, status) {
+  const error = new Error(errorMessage(payload));
+  error.status = status;
+  if (status === 401) notifyAuthLost();
+  throw error;
+}
+
 export async function api(path, options = {}) {
   if (isPublishedConsole() && publishedRuntime === null && !hardDemoHost() && !hasRemoteApi()) {
     await ensurePublishedRuntime();
   }
+  const headers = requestHeaders(options);
+  const next = { ...options, headers };
+  const method = (options.method || "GET").toUpperCase();
   if (isDemoHost()) {
-    const method = (options.method || "GET").toUpperCase();
+    if (path.startsWith("/api/auth")) {
+      return handleDemoAuth(path, next);
+    }
+    if (path !== "/api/health" && !headers.Authorization) {
+      reject({ detail: "Entre com login e senha para acessar o Sentinela." }, 401);
+    }
+    if (headers.Authorization) {
+      assertApiAccess(path, method);
+    }
     if (method !== "GET") {
       let body = {};
       if (options.body) {
@@ -211,17 +239,15 @@ export async function api(path, options = {}) {
     return overlayDemoRead(path, data, snapshot);
   }
 
-  const response = await fetch(`${apiRoot()}${path}`, {
-    ...options,
-    headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...(options.headers || {}),
-    },
-  });
+  if (headers.Authorization) {
+    assertApiAccess(path, method);
+  }
+
+  const response = await fetch(`${apiRoot()}${path}`, next);
   const contentType = response.headers.get("content-type") || "";
   const payload = contentType.includes("application/json") ? await response.json() : await response.text();
   if (!response.ok) {
-    throw new Error(errorMessage(payload));
+    reject(payload, response.status);
   }
   return payload;
 }

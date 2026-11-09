@@ -23,6 +23,22 @@ export function Empty({ children }) {
   return <p className="empty">{children}</p>;
 }
 
+export function AccessDenied({ role, section, onBack }) {
+  return (
+    <section className="panel access-denied">
+      <h2>Acesso restrito</h2>
+      <p className="muted">
+        A função <strong>{role}</strong> não libera esta área do console. A liberação segue a maturidade
+        operacional: N1 libera só chamados e incidentes; painel, logs e automação pedem N2; relatórios e documentação da API pedem N3.
+      </p>
+      {section ? <p className="muted">Seção solicitada: {section}.</p> : null}
+      <button type="button" className="primary" onClick={onBack}>
+        Voltar ao painel
+      </button>
+    </section>
+  );
+}
+
 export function LoadFailure() {
   return (
     <p className="muted" role="status">

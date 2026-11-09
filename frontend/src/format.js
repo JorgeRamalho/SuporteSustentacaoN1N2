@@ -37,6 +37,19 @@ export function formatNumber(value, digits = 1) {
   return Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: digits, minimumFractionDigits: digits });
 }
 
+export function formatClock(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(date);
+}
+
+export function formatDay(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  const text = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(date);
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export function firstLine(value) {
   return String(value || "").split("\n")[0];
 }

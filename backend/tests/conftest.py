@@ -41,6 +41,18 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     from fastapi.testclient import TestClient
 
     with TestClient(app) as test_client:
+        created = test_client.post(
+            "/api/auth/register",
+            json={
+                "name": "Operador de teste",
+                "email": "operador@sentinela.local",
+                "password": "senha-segura",
+                "role": "N3",
+                "sector": "DEV",
+            },
+        )
+        assert created.status_code == 200, created.text
+        test_client.headers["Authorization"] = f"Bearer {created.json()['token']}"
         yield test_client, root
     get_settings.cache_clear()
     reset_engine()

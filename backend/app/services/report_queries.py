@@ -30,7 +30,7 @@ def filter_incidents(
     severity: str | None,
     status: str | None,
 ) -> Query:
-    query = db.query(Incident).order_by(Incident.opened_at.desc())
+    query = db.query(Incident).order_by(Incident.code.asc())
     if queue:
         normalized = queue.upper()
         if normalized not in INCIDENT_LEVELS:

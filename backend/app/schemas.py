@@ -50,6 +50,77 @@ class IncidentUpdate(BaseModel):
     status: Literal["aberto", "em_analise", "resolvido"]
 
 
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+    role: Literal["N1", "N2", "N3"] = "N1"
+    sector: Literal["Suporte", "DEV", "Segurança", "IA"] = "Suporte"
+
+    @field_validator("name")
+    @classmethod
+    def name_filled(cls, value: str) -> str:
+        text = " ".join(value.split())
+        if not text:
+            raise ValueError("Informe o nome.")
+        return text
+
+    @field_validator("email")
+    @classmethod
+    def email_filled(cls, value: str) -> str:
+        text = value.strip()
+        if not text:
+            raise ValueError("Informe o e-mail.")
+        return text
+
+    @field_validator("password")
+    @classmethod
+    def password_filled(cls, value: str) -> str:
+        if not value:
+            raise ValueError("Informe a senha.")
+        return value
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+    @field_validator("email")
+    @classmethod
+    def email_filled(cls, value: str) -> str:
+        text = value.strip()
+        if not text:
+            raise ValueError("Informe o e-mail.")
+        return text
+
+    @field_validator("password")
+    @classmethod
+    def password_filled(cls, value: str) -> str:
+        if not value:
+            raise ValueError("Informe a senha.")
+        return value
+
+
+class RecoverRequest(BaseModel):
+    email: str
+    password: str
+
+    @field_validator("email")
+    @classmethod
+    def email_filled(cls, value: str) -> str:
+        text = value.strip()
+        if not text:
+            raise ValueError("Informe o e-mail.")
+        return text
+
+    @field_validator("password")
+    @classmethod
+    def password_filled(cls, value: str) -> str:
+        if not value:
+            raise ValueError("Informe a nova senha.")
+        return value
+
+
 class ReportRequest(BaseModel):
     days: int = 7
     provider: Literal["jira", "servicenow", "glpi", "zendesk"] | None = None

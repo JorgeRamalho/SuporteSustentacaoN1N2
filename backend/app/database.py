@@ -6,7 +6,7 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.config import get_settings
@@ -70,10 +70,26 @@ def reset_engine() -> None:
     _state["url"] = None
 
 
+def _upgrade_user_profile() -> None:
+    engine = get_engine()
+    if not str(engine.url).startswith("sqlite"):
+        return
+    inspector = inspect(engine)
+    if "users" not in inspector.get_table_names():
+        return
+    existing = {column["name"] for column in inspector.get_columns("users")}
+    with engine.begin() as conn:
+        if "role" not in existing:
+            conn.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(4) DEFAULT 'N1' NOT NULL"))
+        if "sector" not in existing:
+            conn.execute(text("ALTER TABLE users ADD COLUMN sector VARCHAR(32) DEFAULT 'Suporte' NOT NULL"))
+
+
 def init_db() -> None:
     from app import models  # noqa: F401
 
     Base.metadata.create_all(get_engine())
+    _upgrade_user_profile()
 
 
 def get_db() -> Generator[Session, None, None]:

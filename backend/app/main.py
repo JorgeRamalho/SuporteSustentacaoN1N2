@@ -12,7 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from app.bootstrap import bootstrap
 from app.config import get_settings
 from app.errors import ProviderError, SentinelaError
-from app.routes import router
+from app.auth_routes import router as auth_router
+from app.routes import public_router, router
 
 
 @asynccontextmanager
@@ -48,6 +49,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(public_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
 app.include_router(router, prefix="/api")
 
 _assets = get_settings().root / "frontend" / "dist" / "assets"

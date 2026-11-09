@@ -13,8 +13,19 @@ if (-not (Test-Path "node_modules")) {
     npm install
 }
 $bundle = Join-Path $Frontend "live-dist\live-bundle.js"
-if (-not (Test-Path $bundle)) {
+$srcStamp = @(
+    (Join-Path $Frontend "src\AuthScreen.jsx"),
+    (Join-Path $Frontend "src\App.jsx"),
+    (Join-Path $Frontend "src\access.js")
+) | Where-Object { Test-Path $_ } | ForEach-Object { (Get-Item $_).LastWriteTimeUtc } | Measure-Object -Maximum | Select-Object -ExpandProperty Maximum
+$bundleStamp = if (Test-Path $bundle) { (Get-Item $bundle).LastWriteTimeUtc } else { [datetime]::MinValue }
+if (-not (Test-Path $bundle) -or $srcStamp -gt $bundleStamp) {
+    Write-Host "Gerando frontend/live-dist (Live Server usa este bundle; não apenas src/) ..."
     npm run live:bundle
+    if ($LASTEXITCODE -ne 0) {
+        Pop-Location
+        exit $LASTEXITCODE
+    }
 }
 
 $listening = Get-NetTCPConnection -LocalPort $ConsolePort -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1

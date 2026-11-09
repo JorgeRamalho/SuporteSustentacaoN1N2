@@ -18,8 +18,6 @@ if (-not (Test-Path "node_modules")) {
 }
 npm run build
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-npm run live:bundle
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 Pop-Location
 
 Write-Host "Backend e frontend verificados."

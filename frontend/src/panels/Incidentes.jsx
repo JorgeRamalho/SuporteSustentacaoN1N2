@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
 import { formatWhen, label, STATUS } from "../format";
 import { Badge, Empty, LoadFailure } from "../ui";
@@ -7,6 +7,11 @@ export default function Incidentes({ tick, notify, refresh, navigate }) {
   const [items, setItems] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const openCount = useMemo(
+    () => (items ? items.filter((item) => item.status !== "resolvido").length : 0),
+    [items],
+  );
 
   useEffect(() => {
     let active = true;
@@ -52,7 +57,16 @@ export default function Incidentes({ tick, notify, refresh, navigate }) {
   return (
     <>
       <div className="toolbar">
-        <p className="muted">P1 e P2 vão para o N2. P3 com procedimento conhecido fica no N1. O fornecedor entra quando a mensagem contém o sinal cadastrado.</p>
+        <p className="muted">
+          P1 e P2 vão para o N2. P3 com procedimento conhecido fica no N1. O fornecedor entra quando a mensagem contém o sinal cadastrado.
+          {items ? (
+            <>
+              {" "}
+              <strong>{openCount}</strong> {openCount === 1 ? "incidente aberto" : "incidentes abertos"} nesta fila
+              {items.length !== openCount ? ` · ${items.length} no total` : ""}.
+            </>
+          ) : null}
+        </p>
         <div className="toolbar-actions">
           <button className="primary" type="button" onClick={() => navigate?.("registro-n1")}>
             Registrar novo incidente (N1)
