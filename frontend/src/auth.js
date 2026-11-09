@@ -6,9 +6,63 @@ const USERS_KEY = "sentinela.auth.users.v1";
 const ROLES = new Set(["N1", "N2", "N3"]);
 const SECTORS = new Set(["Suporte", "DEV", "Segurança", "IA"]);
 
+let storageOverride = null;
+
+/** Somente testes — simula localStorage isolado por “navegador”. */
+export function setAuthStorage(override) {
+  storageOverride = override;
+}
+
+function authStorage() {
+  if (storageOverride) return storageOverride;
+  if (typeof localStorage !== "undefined") return localStorage;
+  return null;
+}
+
+export function authStorageAvailable() {
+  const storage = authStorage();
+  if (!storage) return false;
+  try {
+    const probe = "sentinela.storage.probe";
+    storage.setItem(probe, "1");
+    storage.removeItem(probe);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function storageWriteError() {
+  return new Error(
+    "Este navegador bloqueou o armazenamento local deste site. No Microsoft Edge: Configurações → Cookies e permissões do site → permitir cookies e dados para suportesustentacaon1n2.vercel.app.",
+  );
+}
+
+function isInternetPublishedConsole() {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname.toLowerCase();
+  if (window.location.protocol === "file:") return false;
+  if (host === "127.0.0.1" || host === "localhost") return false;
+  if (/\.github\.io$/i.test(host)) return false;
+  return true;
+}
+
+function demoUserMissingMessage() {
+  if (isInternetPublishedConsole()) {
+    return (
+      "Neste site (modo demonstração), o cadastro fica salvo só neste navegador. " +
+      "Chrome e Edge não compartilham o mesmo usuário — use «Criar cadastro» aqui com o mesmo e-mail e senha, " +
+      "ou publique a API no Render (veja docs/deploy-publicacao.md) para um login único."
+    );
+  }
+  return "Usuário não cadastrado. Verifique o e-mail ou crie um cadastro.";
+}
+
 export function readSession() {
   try {
-    const raw = localStorage.getItem(SESSION_KEY);
+    const storage = authStorage();
+    if (!storage) return null;
+    const raw = storage.getItem(SESSION_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed?.token || !parsed?.user?.email) return null;
@@ -19,11 +73,23 @@ export function readSession() {
 }
 
 export function writeSession(session) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  const storage = authStorage();
+  if (!storage) throw storageWriteError();
+  try {
+    storage.setItem(SESSION_KEY, JSON.stringify(session));
+  } catch {
+    throw storageWriteError();
+  }
 }
 
 export function clearSession() {
-  localStorage.removeItem(SESSION_KEY);
+  const storage = authStorage();
+  if (!storage) return;
+  try {
+    storage.removeItem(SESSION_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
 export function authHeaders() {
@@ -76,7 +142,9 @@ async function hashPassword(password, salt) {
 
 function readUsers() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+    const storage = authStorage();
+    if (!storage) return [];
+    const parsed = JSON.parse(storage.getItem(USERS_KEY) || "[]");
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -84,7 +152,13 @@ function readUsers() {
 }
 
 function writeUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  const storage = authStorage();
+  if (!storage) throw storageWriteError();
+  try {
+    storage.setItem(USERS_KEY, JSON.stringify(users));
+  } catch {
+    throw storageWriteError();
+  }
 }
 
 function normalizeEmail(value) {
@@ -167,7 +241,7 @@ async function demoLogin(body) {
   const users = readUsers();
   const row = users.find((item) => item.email === email);
   if (!row) {
-    fail("Usuário não cadastrado. Verifique o e-mail ou crie um cadastro.");
+    fail(demoUserMissingMessage());
   }
   if ((await hashPassword(password, row.salt)) !== row.hash) {
     fail("Senha incorreta.");
@@ -184,7 +258,7 @@ async function demoRecover(body) {
   if (password.length < 8) fail("A senha deve ter pelo menos 8 caracteres.");
   const users = readUsers();
   const row = users.find((item) => item.email === email);
-  if (!row) fail("Usuário não cadastrado. Verifique o e-mail ou crie um cadastro.");
+  if (!row) fail(demoUserMissingMessage());
   row.salt = randomToken();
   row.hash = await hashPassword(password, row.salt);
   row.token = randomToken();

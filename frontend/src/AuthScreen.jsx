@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { api } from "./api";
-import { writeSession } from "./auth";
+import { useEffect, useState } from "react";
+import { api, isPublishedConsole } from "./api";
+import { authStorageAvailable, writeSession } from "./auth";
 
 const ROLES = ["N1", "N2", "N3"];
 const SECTORS = ["Suporte", "DEV", "Segurança", "IA"];
@@ -40,6 +40,14 @@ export default function AuthScreen({ onAuthenticated }) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (isPublishedConsole() && !authStorageAvailable()) {
+      setError(
+        "Este navegador bloqueou o armazenamento local deste site. No Microsoft Edge, permita cookies e dados do site para suportesustentacaon1n2.vercel.app.",
+      );
+    }
+  }, []);
 
   function go(next) {
     setView(next);
