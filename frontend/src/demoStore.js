@@ -68,13 +68,19 @@ function baseItems(snapshot) {
   return Array.isArray(block?.items) ? block.items : [];
 }
 
+function sortIncidentsNewestFirst(items) {
+  return [...items].sort((left, right) =>
+    String(right.code || "").localeCompare(String(left.code || ""), undefined, { numeric: true }),
+  );
+}
+
 function mergeItems(items, state) {
   const updated = items.map((item) => {
     const patch = state.updates[String(item.id)];
     if (!patch) return item;
     return { ...item, status: patch.status, updated_at: patch.updated_at };
   });
-  return [...state.created, ...updated].sort((left, right) => Date.parse(right.opened_at) - Date.parse(left.opened_at));
+  return sortIncidentsNewestFirst([...state.created, ...updated]);
 }
 
 function signatureOf(message) {
@@ -168,25 +174,36 @@ function patchIncident(id, body, snapshot) {
 }
 
 export function overlayDemoRead(path, data, snapshot) {
-  const state = readState();
-  if (!hasMutations(state) || !data || typeof data !== "object") return data;
+  if (!data || typeof data !== "object") return data;
   const bare = path.split("?")[0];
-  const items = mergeItems(baseItems(snapshot), state);
-  if (bare === "/api/incidents") return { items };
-  if (bare !== "/api/dashboard") return data;
-  const open = items.filter((item) => item.status !== "resolvido");
-  return {
-    ...data,
-    kpis: {
-      ...data.kpis,
-      open_incidents: open.length,
-      p1: open.filter((item) => item.severity === "P1").length,
-    },
-    services: Array.isArray(data.services)
-      ? data.services.map((service) => ({ ...service, status: deriveStatus(service.name, open) }))
-      : data.services,
-    incidents: items.slice(0, 6),
-  };
+  const state = readState();
+  const base = baseItems(snapshot);
+  const items = hasMutations(state) ? mergeItems(base, state) : sortIncidentsNewestFirst(base);
+
+  if (bare === "/api/incidents") {
+    return { items: Array.isArray(data.items) ? items : data.items };
+  }
+  if (bare === "/api/dashboard") {
+    const boardIncidents = items.slice(0, 6);
+    if (!hasMutations(state)) {
+      return { ...data, incidents: boardIncidents };
+    }
+    const open = items.filter((item) => item.status !== "resolvido");
+    return {
+      ...data,
+      kpis: {
+        ...data.kpis,
+        open_incidents: open.length,
+        p1: open.filter((item) => item.severity === "P1").length,
+      },
+      services: Array.isArray(data.services)
+        ? data.services.map((service) => ({ ...service, status: deriveStatus(service.name, open) }))
+        : data.services,
+      incidents: boardIncidents,
+    };
+  }
+  if (!hasMutations(state)) return data;
+  return data;
 }
 
 export function writeDemoIncident(path, body, snapshot) {

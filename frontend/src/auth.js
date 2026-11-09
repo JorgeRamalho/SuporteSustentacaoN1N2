@@ -198,6 +198,20 @@ function demoMe(token) {
   return publicUser(row);
 }
 
+async function demoChangePassword(token, body) {
+  const users = readUsers();
+  const row = users.find((item) => item.token === token);
+  if (!row) fail("Entre com login e senha para acessar o Sentinela.", 401);
+  const current = String(body.current_password || "");
+  const next = String(body.new_password || "");
+  if (next.length < 8) fail("A senha deve ter pelo menos 8 caracteres.");
+  if ((await hashPassword(current, row.salt)) !== row.hash) fail("Senha atual incorreta.");
+  row.salt = randomToken();
+  row.hash = await hashPassword(next, row.salt);
+  writeUsers(users);
+  return { ok: true };
+}
+
 function demoLogout(token) {
   const users = readUsers();
   const row = users.find((item) => item.token === token);
@@ -218,5 +232,6 @@ export async function handleDemoAuth(path, options = {}) {
   if (bare === "/api/auth/recover" && method === "POST") return demoRecover(body);
   if (bare === "/api/auth/logout" && method === "POST") return demoLogout(token);
   if (bare === "/api/auth/me" && method === "GET") return demoMe(token);
+  if (bare === "/api/auth/me/password" && method === "PATCH") return demoChangePassword(token, body);
   fail(`Rota de acesso sem suporte no modo demonstração: ${path}`);
 }

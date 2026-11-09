@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas import LoginRequest, RecoverRequest, RegisterRequest
+from app.schemas import ChangePasswordRequest, LoginRequest, RecoverRequest, RegisterRequest
 from app.services.auth import (
+    change_password,
     dump_user,
     login_user,
     logout_user,
@@ -43,3 +44,12 @@ def logout(db: Session = Depends(get_db), token: str | None = Depends(optional_t
 @router.get("/me", summary="Quem está na sessão", description="Confirma o operador autenticado.")
 def me(user=Depends(require_user)) -> dict:
     return dump_user(user)
+
+
+@router.patch("/me/password", summary="Alterar senha", description="Confirma a senha atual e grava a nova.")
+def patch_password(
+    payload: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    user=Depends(require_user),
+) -> dict:
+    return change_password(db, user, payload.current_password, payload.new_password)

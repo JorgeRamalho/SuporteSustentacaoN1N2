@@ -77,6 +77,20 @@ def test_cadastro_login_e_recuperacao(client):
     assert entered.status_code == 200
     http.headers["Authorization"] = f"Bearer {entered.json()['token']}"
     assert http.get("/api/incidents").status_code == 200
+
+    wrong_pw = http.patch(
+        "/api/auth/me/password",
+        json={"current_password": "errada", "new_password": "outraSenha1"},
+    )
+    assert wrong_pw.status_code == 400
+    assert "atual" in wrong_pw.json()["detail"].lower()
+
+    changed = http.patch(
+        "/api/auth/me/password",
+        json={"current_password": "novaSenha1", "new_password": "maisUmaSenha1"},
+    )
+    assert changed.status_code == 200
+
     assert http.post("/api/auth/logout").status_code == 200
     _without_session(http)
     assert http.get("/api/dashboard").status_code == 401

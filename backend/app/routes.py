@@ -138,7 +138,7 @@ def reprocess(db: Session = Depends(get_db)) -> dict:
 @router.get("/incidents", tags=["Incidentes"], summary="Listar incidentes", description="Fila N1/N2 com procedimento e fornecedor associados.")
 def list_incidents(db: Session = Depends(get_db)) -> dict:
     articles, vendors = load_maps(db)
-    rows = db.query(Incident).order_by(Incident.code.asc()).all()
+    rows = db.query(Incident).order_by(Incident.code.desc()).all()
     return {"items": [dump_incident(row, articles, vendors) for row in rows]}
 
 

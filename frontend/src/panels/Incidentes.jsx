@@ -18,7 +18,11 @@ export default function Incidentes({ tick, notify, refresh, navigate }) {
     api("/api/incidents")
       .then((payload) => {
         if (!active) return;
-        setItems(payload.items);
+        setItems(
+          [...payload.items].sort((left, right) =>
+            String(right.code || "").localeCompare(String(left.code || ""), undefined, { numeric: true }),
+          ),
+        );
         setError("");
       })
       .catch((err) => {

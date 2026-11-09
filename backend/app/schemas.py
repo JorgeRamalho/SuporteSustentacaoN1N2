@@ -101,6 +101,18 @@ class LoginRequest(BaseModel):
         return value
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+    @field_validator("current_password", "new_password")
+    @classmethod
+    def password_filled(cls, value: str) -> str:
+        if not value:
+            raise ValueError("Informe a senha.")
+        return value
+
+
 class RecoverRequest(BaseModel):
     email: str
     password: str

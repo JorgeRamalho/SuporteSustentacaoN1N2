@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, canLoadData, localLabHelp } from "./api";
+import AccountMenu from "./components/AccountMenu";
 import AuthScreen from "./AuthScreen";
 import { accessDeniedMessage, canAccessSection, defaultSectionFor, roleFromSession } from "./access";
 import { AUTH_LOST_EVENT, clearSession, readSession } from "./auth";
@@ -286,20 +287,11 @@ export default function App() {
           </div>
           <div className="top-meta">
             <time className="top-clock" dateTime={now.toISOString()}>{formatClock(now)}</time>
-            <div className="who">
-              <span>
-                {session.user?.name || session.user?.email}
-                {session.user?.role || session.user?.sector ? (
-                  <>
-                    {" "}
-                    · {session.user?.role || "N1"} · {session.user?.sector || "Suporte"}
-                  </>
-                ) : null}
-              </span>
-              <button type="button" className="ghost" onClick={logout}>
-                Sair
-              </button>
-            </div>
+            <AccountMenu
+              user={session.user}
+              onLogout={logout}
+              notify={(message, kind) => setNotice({ message, kind: kind || "info" })}
+            />
             {health ? (
               <span className={health.simulate ? "pill" : "pill bad"}>{health.simulate ? "Modo seguro" : "Ação real habilitada"}</span>
             ) : null}

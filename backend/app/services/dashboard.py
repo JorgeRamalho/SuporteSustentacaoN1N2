@@ -16,7 +16,7 @@ from app.timeutil import utcnow
 
 def build_dashboard(db: Session, settings: Settings) -> dict:
     articles, vendors = load_maps(db)
-    incidents = db.query(Incident).order_by(Incident.code.asc()).all()
+    incidents = db.query(Incident).order_by(Incident.code.desc()).all()
     open_incidents = [item for item in incidents if item.status != "resolvido"]
     tickets = db.query(Ticket).all()
     sla = build_sla([to_view(item) for item in tickets], utcnow(), 7)
@@ -44,6 +44,6 @@ def build_dashboard(db: Session, settings: Settings) -> dict:
         },
         "host": host,
         "services": services,
-        "incidents": [dump_incident(item, articles, vendors) for item in incidents[-6:][::-1]],
+        "incidents": [dump_incident(item, articles, vendors) for item in incidents[:6]],
         "alerts": [dump_alert(item) for item in alerts],
     }

@@ -155,6 +155,15 @@ def recover_password(db: Session, email: str, password: str) -> dict:
     return dump_session(user, token)
 
 
+def change_password(db: Session, user: User, current_password: str, new_password: str) -> dict:
+    if not verify_password(current_password, user.password_hash):
+        raise SentinelaError("Senha atual incorreta.")
+    validate_credentials(None, user.email, new_password)
+    user.password_hash = hash_password(new_password)
+    db.commit()
+    return {"ok": True}
+
+
 def logout_user(db: Session, token: str | None) -> dict:
     if token:
         db.query(AuthSession).filter(AuthSession.token == token).delete()

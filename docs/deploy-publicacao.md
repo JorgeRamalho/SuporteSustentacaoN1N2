@@ -1,5 +1,23 @@
 # Publicar o Sentinela com incidentes que persistem
 
+## Login falha na Vercel mas funciona em `127.0.0.1:5500`
+
+| Ambiente | Onde ficam os usuários |
+| --- | --- |
+| `http://127.0.0.1:5500` + API `8010` | SQLite em `data/sentinela.db` no seu PC |
+| `https://suportesustentacaon1n2.vercel.app/` (hoje) | **localStorage deste navegador** (modo demonstração) |
+
+Não é bug de senha: é **outro cadastro**. O mesmo e-mail/senha do laboratório **não existe** no site público até você publicar a API e ligar o domínio.
+
+**Opções:**
+
+1. **Rápido:** em `https://suportesustentacaon1n2.vercel.app/`, use **Criar cadastro** (conta só neste navegador).
+2. **Produção:** suba a API no Render (seção B abaixo), troque a URL em `vercel.json` **ou** crie `frontend/sentinela-config.js` a partir do exemplo — depois **redeploy** na Vercel.
+
+Confirme: `curl https://suportesustentacaon1n2.vercel.app/api/health` → hoje **404** = modo demo ativo.
+
+---
+
 ## O que acontecia
 
 O site na Vercel (`https://suportesustentacaon1n2.vercel.app/`) é **só o console estático**. Não há API Python publicada.
