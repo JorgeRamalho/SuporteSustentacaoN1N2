@@ -111,7 +111,7 @@ export function localLabHelp() {
   if (isPublishedConsole() && isDemoHost()) {
     return publishedDemoHelp();
   }
-  return `API ou console parados. Na raiz do projeto execute npm start ou scripts\\Abrir-Sentinela.cmd e abra ${LOCAL_CONSOLE_URL}. Depois recarregue (F5).`;
+  return `API ou console parados. Execute npm --prefix config start ou scripts\\Abrir-Sentinela.cmd e abra ${LOCAL_CONSOLE_URL}. Depois recarregue (F5).`;
 }
 
 export function apiRoot() {

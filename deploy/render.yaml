@@ -1,5 +1,6 @@
 # Blueprint: API Python com disco persistente para SQLite em /app/data
-# Conecte o repositório em https://dashboard.render.com/blueprints
+# Render lê render.yaml só na raiz do repositório — ao usar Blueprint, copie ou vincule este arquivo.
+# Ver deploy/README.md
 services:
   - type: web
     name: sentinela-api

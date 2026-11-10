@@ -39,7 +39,7 @@ if ($null -eq $listening) {
         Start-Sleep -Milliseconds 400
     }
     if ($null -eq $listening) {
-        Write-Host "O console não subiu na porta $ConsolePort. Rode npm start na raiz do projeto."
+        Write-Host "O console não subiu na porta $ConsolePort. Rode: npm --prefix config start"
         Pop-Location
         exit 1
     }

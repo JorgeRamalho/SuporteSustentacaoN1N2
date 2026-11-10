@@ -14,7 +14,7 @@
 Subir o Jenkins com Docker:
 
 ```powershell
-npm run docker:jenkins
+npm --prefix config run docker:jenkins
 ```
 
 A senha inicial: `docker compose -f deploy/docker-compose.yml logs jenkins`.

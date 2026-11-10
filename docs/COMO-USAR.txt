@@ -13,7 +13,7 @@
 
    (Se você digitar localhost:5500, o site redireciona sozinho para 127.0.0.1.)
 
-   Ou na raiz:  npm start   ou duplo clique em  scripts\Abrir-Sentinela.cmd
+   Ou:  npm --prefix config start   ou duplo clique em  scripts\Abrir-Sentinela.cmd
 
    Não use o botão "Go Live" — ele não sobe a API.
 

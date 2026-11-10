@@ -19,5 +19,8 @@ frontend/public/live-bundle.css
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
+!.vscode/README.md
+_agent_host_*.json
+chat-historico-relatorio.txt
 *.log
 !data/sample_logs/*.log

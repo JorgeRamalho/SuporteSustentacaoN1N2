@@ -12,7 +12,7 @@ Não é bug de senha: é **outro cadastro**. O mesmo e-mail/senha do laboratóri
 **Opções:**
 
 1. **Rápido:** em `https://suportesustentacaon1n2.vercel.app/`, use **Criar cadastro** (conta só neste navegador).
-2. **Produção:** suba a API no Render (seção B abaixo), troque a URL em `vercel.json` **ou** crie `frontend/sentinela-config.js` a partir do exemplo — depois **redeploy** na Vercel.
+2. **Produção:** suba a API no Render (seção B abaixo), troque a URL em `deploy/vercel.json` **ou** crie `frontend/sentinela-config.js` a partir do exemplo — depois **redeploy** na Vercel.
 
 Confirme: `curl https://suportesustentacaon1n2.vercel.app/api/health` → hoje **404** = modo demo ativo.
 
@@ -32,8 +32,8 @@ O site na Vercel (`https://suportesustentacaon1n2.vercel.app/`) é **só o conso
 | Objetivo | O que fazer | Persistência |
 | --- | --- | --- |
 | **A. Rápido** (só parar de “perder” ao recarregar a página) | Publicar o frontend atual na Vercel | Só neste navegador (`localStorage`) |
-| **B. Produção de verdade** | API no Render + proxy no `vercel.json` | SQLite em disco no Render (compartilhado) |
-| **C. Laboratório local** | `npm start` no Windows | SQLite em `data/sentinela.db` no seu PC |
+| **B. Produção de verdade** | API no Render + proxy no `deploy/vercel.json` | SQLite em disco no Render (compartilhado) |
+| **C. Laboratório local** | `npm --prefix config start` no Windows | SQLite em `data/sentinela.db` no seu PC |
 
 ---
 
@@ -60,7 +60,7 @@ O site na Vercel (`https://suportesustentacaon1n2.vercel.app/`) é **só o conso
 ### 1. Subir a API no Render
 
 1. Conta em [Render](https://render.com).
-2. **New → Blueprint** e aponte para este repositório (`render.yaml` na raiz).
+2. **New → Blueprint** e aponte para este repositório. O modelo está em `deploy/render.yaml` (o Render exige o arquivo na raiz — veja `deploy/README.md`).
 3. Aguarde o deploy. Anote a URL, por exemplo `https://sentinela-api-xxxx.onrender.com`.
 4. Confirme no navegador: `https://SUA-URL.onrender.com/api/health` → JSON `{"status":"ok",...}`.
 
@@ -68,7 +68,7 @@ O disco em `/app/data` guarda o SQLite entre reinícios (plano com disco persist
 
 ### 2. Proxy na Vercel
 
-Edite `vercel.json` na raiz: troque **todas** as ocorrências de
+Edite `deploy/vercel.json` (e copie para a raiz no deploy Git, se a Vercel não ler subpastas): troque **todas** as ocorrências de
 
 `https://SUBSTITUA-PELA-URL-DA-SUA-API.onrender.com`
 
@@ -100,7 +100,7 @@ Na primeira chamada, o console faz `GET /api/health` **no mesmo domínio** da Ve
 ## C. Laboratório no Windows (referência)
 
 ```powershell
-npm start
+npm --prefix config start
 ```
 
 Console: `http://127.0.0.1:5500/index.html` — API na porta **8010**.

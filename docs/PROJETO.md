@@ -4,6 +4,8 @@ Console de sustentação N1/N2. Ele lê log, abre incidente com procedimento e f
 
 O laboratório sobe com SQLite, amostras locais e um catálogo fictício de Jira, ServiceNow, GLPI e Zendesk. A mesma API aceita token real quando você preenche o `.env`.
 
+**Organização:** a raiz do repositório expõe só `index.html` (entrada web). Visão geral e mapa de pastas: [organizacao-e-padroes.md](./organizacao-e-padroes.md) e [estrutura-do-projeto.md](./estrutura-do-projeto.md).
+
 ## Arquitetura
 
 ```mermaid
@@ -28,7 +30,7 @@ flowchart LR
 
 ## Subir no Windows
 
-**Forma recomendada (sem erro):** rode `npm start` ou `npm run abrir` na raiz (ou duplo clique em `scripts/Abrir-Sentinela.cmd`). Isso sobe a API (8010), o console (5500) e abre o navegador. Guia curto: `docs/COMO-USAR.txt`.
+**Forma recomendada (sem erro):** rode `npm --prefix config start` ou `npm --prefix config run abrir` (ou duplo clique em `scripts/Abrir-Sentinela.cmd`). Isso sobe a API (8010), o console (5500) e abre o navegador. Guia curto: `docs/COMO-USAR.txt`.
 
 Ou no terminal:
 
@@ -55,7 +57,7 @@ Abra `http://127.0.0.1:5173`. A documentação da API fica em `http://127.0.0.1:
 
 ### Live Server (VS Code)
 
-O projeto já vem com `.vscode/settings.json` apontando a raiz do servidor para `frontend/` e **proxy** de `/api` para `http://127.0.0.1:8010`. O console no Live Server usa caminhos relativos (`/api/...`); a API precisa estar na porta **8010** — use `scripts\iniciar.ps1` ou deixe a tarefa automática ao abrir a pasta. A porta 8000 fica de fora de propósito: no Windows ela costuma estar ocupada pelo Docker Desktop/WSL.
+O projeto já vem com `.vscode/settings.json` servindo a **raiz do repositório** (onde está `index.html`) na porta **5500**. A API precisa estar na porta **8010** — use `scripts\iniciar.ps1` ou deixe a tarefa automática ao abrir a pasta. A porta 8000 fica de fora de propósito: no Windows ela costuma estar ocupada pelo Docker Desktop/WSL.
 
 1. Em `frontend`, gere o bundle uma vez (ou deixe em watch enquanto edita o React):
 
@@ -73,11 +75,11 @@ Mapa completo de pastas: `docs/estrutura-do-projeto.md`.
 
 ### GitHub Pages
 
-O endereço `https://jorgeramalho.github.io/SuporteSustentacaoN1N2/` abre o console em **modo demonstração** (dados em `frontend/demo/api-snapshot.json`, sem API na nuvem). Atualize o snapshot com `scripts/export-demo.ps1` (com a API local na 8010) antes do commit. O laboratório completo continua em `npm start` e `http://127.0.0.1:5500/index.html` no seu PC.
+O endereço `https://jorgeramalho.github.io/SuporteSustentacaoN1N2/` abre o console em **modo demonstração** (dados em `frontend/demo/api-snapshot.json`, sem API na nuvem). Atualize o snapshot com `scripts/export-demo.ps1` (com a API local na 8010) antes do commit. O laboratório completo continua em `npm --prefix config start` e `http://127.0.0.1:5500/index.html` no seu PC.
 
 ### Vercel e incidentes que “não salvam”
 
-Se o site público só mostra o console (por exemplo `https://suportesustentacaon1n2.vercel.app/`) e **Incidentes** não persiste, a causa é a ausência da API Python — não é bug do formulário. Depois do deploy com o bundle atual, o modo demo grava no **localStorage**; para banco compartilhado, publique a API (Render + `render.yaml`) e configure o `vercel.json`. Passo a passo: **`docs/deploy-publicacao.md`**.
+Se o site público só mostra o console (por exemplo `https://suportesustentacaon1n2.vercel.app/`) e **Incidentes** não persiste, a causa é a ausência da API Python — não é bug do formulário. Depois do deploy com o bundle atual, o modo demo grava no **localStorage**; para banco compartilhado, publique a API (Render + `deploy/render.yaml`) e configure `deploy/vercel.json`. Passo a passo: **`docs/deploy-publicacao.md`**.
 
 ### Feedback no console
 
@@ -102,7 +104,7 @@ Linha de comando, a partir de `backend`:
 Docker (Compose em `deploy/`):
 
 ```powershell
-npm run docker:up
+npm --prefix config run docker:up
 ```
 
 O console empacotado fica em `http://127.0.0.1:8088` e a API em `http://127.0.0.1:8000`.
@@ -110,7 +112,7 @@ O console empacotado fica em `http://127.0.0.1:8088` e a API em `http://127.0.0.
 Jenkins, quando quiser mostrar o pipeline:
 
 ```powershell
-npm run docker:jenkins
+npm --prefix config run docker:jenkins
 ```
 
 A primeira senha sai em `docker compose -f deploy/docker-compose.yml logs jenkins`. Configure o job com **Script Path** `jenkins/Jenkinsfile` (veja `jenkins/README.md`). No laboratório, o repositório monta em `/workspace`. No Windows, `scripts\verificar.ps1` executa os mesmos dois estágios: pytest e `npm run build`.

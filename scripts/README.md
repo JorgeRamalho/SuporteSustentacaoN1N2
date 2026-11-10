@@ -11,6 +11,9 @@ Automação local: API, bundle Live Server e verificação antes de demonstraç�
 | `iniciar.ps1` | Fluxo após ambiente pronto (mensagens e URLs). |
 | `abrir.ps1` | Garante ambiente e abre o navegador. |
 | `verificar.ps1` | Espelho do `jenkins/Jenkinsfile` (pytest + build). |
+| `export-demo.ps1` | Gera `frontend/demo/api-snapshot.json`. |
+| `live-console.cjs` | Helper Node para console live. |
 | `Abrir-Sentinela.cmd` | Atalho duplo clique: chama `abrir.ps1`. |
+| `Abrir-Lista-Chats.bat` | Abre a raiz do repo no Cursor (`-r`). |
 
-Na raiz, prefira `npm start` ou `npm run abrir`. O `.cmd` fica aqui para agrupar tudo em `scripts/`.
+Prefira `npm --prefix config start` ou `npm --prefix config run abrir`. Os atalhos `.cmd`/`.bat` ficam aqui para não poluir a raiz.

@@ -1,31 +1,25 @@
 # Estrutura do repositório Sentinela
 
-Padrão: **raiz enxuta** (entrada web + índice do projeto), com **cada arquivo na pasta da sua responsabilidade** e um `README.md` nas áreas de infraestrutura.
+Padrão: **raiz com um único arquivo web** (`index.html`), **configuração em pastas nomeadas** e **`README.md` em cada área**.
+
+Mapa de princípios: [organizacao-e-padroes.md](./organizacao-e-padroes.md).
 
 ## Raiz (`/`)
 
-Apenas o essencial.
-
-| Arquivo | Função |
+| Item | Função |
 | --- | --- |
-| `index.html` | Entrada do console (Live Server `:5500` e build Vite). |
-| `README.md` | Visão geral, arquitetura e primeiros passos. |
-| `package.json` | Atalhos npm (`start`, `docker:up`, …). |
+| `index.html` | Entrada do console (Live Server `:5500`, Pages, Vercel estático). |
 | `.gitignore` | Exclusões de versionamento. |
-| `.dockerignore` | Contexto Docker (raiz do repo). |
-| `.editorconfig` | Estilo básico (UTF-8, fins de linha por tipo). |
+| `.dockerignore` | Contexto Docker (build a partir da raiz). |
+| `.editorconfig` | UTF-8, fins de linha e indentação base. |
+| `.env` | Variáveis locais (cópia de `config/.env.example`; não versionado). |
 
-| Pasta | Responsabilidade |
+| Pasta oculta | Função |
 | --- | --- |
-| `backend/` | API FastAPI e testes Python. |
-| `config/` | Modelo `.env.example` (cópia vira `.env` na raiz). |
-| `data/` | SQLite, amostras, relatórios, sandbox. |
-| `deploy/` | `docker-compose.yml` e notas de orquestração. |
-| `docs/` | Documentação e roteiros. |
-| `frontend/` | Console React, Vite, nginx e bundles. |
-| `jenkins/` | Imagem Jenkins + `Jenkinsfile`. |
-| `scripts/` | Automação PowerShell e `Abrir-Sentinela.cmd`. |
-| `.vscode/` | Tarefas ao abrir a pasta e Live Server. |
+| `.github/workflows/` | CI (bundle GitHub Pages). |
+| `.vscode/` | Live Server, extensões recomendadas. |
+
+Não há outros arquivos soltos na raiz — documentação em `docs/`, npm em `config/`, deploy em `deploy/`.
 
 ---
 
@@ -36,7 +30,9 @@ Ver [config/README.md](../config/README.md).
 | Arquivo | Função |
 | --- | --- |
 | `.env.example` | Variáveis de ambiente documentadas. |
-| `README.md` | Como copiar para `.env` na raiz. |
+| `package.json` | Atalhos npm (`start`, `docker:up`, …) — use `npm --prefix config`. |
+| `Suporte-N1N2.code-workspace` | Workspace Cursor com este repo + projeto Python irmão. |
+| `README.md` | Como copiar `.env` e rodar npm. |
 
 ---
 
@@ -47,7 +43,9 @@ Ver [deploy/README.md](../deploy/README.md).
 | Arquivo | Função |
 | --- | --- |
 | `docker-compose.yml` | Serviços `api`, `web`, perfil `jenkins`. |
-| `README.md` | Comandos `npm run docker:*`. |
+| `render.yaml` | Blueprint Render (API + disco SQLite). |
+| `vercel.json` | Rewrites `/api` → URL do Render. |
+| `README.md` | Compose, Render e Vercel. |
 
 ---
 
@@ -59,7 +57,7 @@ Ver [jenkins/README.md](../jenkins/README.md).
 | --- | --- |
 | `Dockerfile` | Agente LTS + Python + Node. |
 | `Jenkinsfile` | Pipeline CI (`Script Path` = `jenkins/Jenkinsfile`). |
-| `README.md` | Como criar o job e subir com Compose. |
+| `README.md` | Job Jenkins e Compose. |
 
 ---
 
@@ -74,7 +72,10 @@ Ver [scripts/README.md](../scripts/README.md).
 | `garantir-api.ps1` / `subir-api.ps1` | Backend uvicorn. |
 | `iniciar.ps1` / `abrir.ps1` | Mensagens e abertura do navegador. |
 | `verificar.ps1` | pytest + build (espelho do Jenkins). |
-| `Abrir-Sentinela.cmd` | Atalho Windows (equivalente a `npm run abrir`). |
+| `export-demo.ps1` | Snapshot para GitHub Pages demo. |
+| `live-console.cjs` | Utilitário do bundle live. |
+| `Abrir-Sentinela.cmd` | Atalho Windows → `abrir.ps1`. |
+| `Abrir-Lista-Chats.bat` | Abre a pasta do projeto no Cursor. |
 
 ---
 
@@ -84,14 +85,19 @@ Ver [docs/README.md](./README.md).
 
 | Arquivo | Função |
 | --- | --- |
+| `PROJETO.md` | Visão geral técnica (antigo README da raiz). |
+| `organizacao-e-padroes.md` | Regras de pastas e raiz enxuta. |
 | `estrutura-do-projeto.md` | Este mapa. |
+| `deploy-publicacao.md` | Vercel, Render, persistência. |
 | `COMO-USAR.txt` | Passos mínimos no editor. |
 | `roteiro-entrevista.md` | Demonstração guiada. |
-| `README.md` | Índice da pasta. |
+| `arquivo/` | Notas e relatórios auxiliares (não operacionais). |
 
 ---
 
 ## `backend/`
+
+Ver [backend/README.md](../backend/README.md).
 
 | Caminho | Função |
 | --- | --- |
@@ -99,7 +105,7 @@ Ver [docs/README.md](./README.md).
 | `pytest.ini` | Configuração pytest. |
 | `Dockerfile` | Imagem `api` no Compose. |
 | `app/main.py` | FastAPI, rotas e estáticos do build. |
-| `app/routes.py` | Endpoints REST. |
+| `app/routes.py` / `auth_routes.py` | Endpoints REST e auth. |
 | `app/models.py` / `schemas.py` | ORM e validação. |
 | `app/config.py` / `database.py` | Settings (lê `.env` na raiz) e DB. |
 | `app/cli.py` | Comandos `logs`, `monitor`, `report`. |
@@ -110,24 +116,29 @@ Ver [docs/README.md](./README.md).
 
 ## `frontend/`
 
+Ver [frontend/README.md](../frontend/README.md).
+
 | Caminho | Função |
 | --- | --- |
 | `package.json` | Vite, `live-server`, bundles. |
 | `vite.config.js` | Dev/build (índice HTML na raiz do repo). |
 | `vite.live.config.js` | Bundle estático `live-dist/`. |
 | `live-bootstrap.js` | Loader Live Server vs Vite dev. |
+| `index.html` | Redireciona para `../index.html`. |
+| `sentinela-config.example.js` | Modelo de URL da API em produção. |
 | `nginx.conf` / `Dockerfile` | Container `web`. |
+| `demo/api-snapshot.json` | Modo demo (Pages). |
 | `src/main.jsx`, `App.jsx` | Entrada React. |
-| `src/api.js`, `format.js`, `ui.jsx`, `useResource.js` | Base da UI. |
-| `src/components/` | Formulários compartilhados. |
 | `src/panels/` | Abas do console. |
-| `public/` | Arquivos públicos no dev. |
-| `live-dist/` | Saída `npm run live:bundle`. |
+| `src/components/` | Formulários compartilhados. |
+| `live-dist/` | Saída `npm run live:bundle` (versionada para Pages). |
 | `dist/` | Saída `npm run build`. |
 
 ---
 
 ## `data/`
+
+Ver [data/README.md](../data/README.md).
 
 | Caminho | Função |
 | --- | --- |
@@ -140,22 +151,23 @@ Ver [docs/README.md](./README.md).
 
 ## `.vscode/`
 
+Ver [.vscode/README.md](../.vscode/README.md).
+
 | Arquivo | Função |
 | --- | --- |
 | `settings.json` | Live Server na raiz (`/`) e porta 5500. |
-| `tasks.json` | Garantir ambiente ao abrir + atalhos de build/API. |
-| `extensions.json` | Recomenda extensão Live Server. |
+| `extensions.json` | Recomenda Live Server. |
 
 ---
 
 ## Fluxos principais
 
 ```text
-npm start | npm run abrir
+npm --prefix config start | scripts\Abrir-Sentinela.cmd
     → scripts/*.ps1
     → http://127.0.0.1:5500/index.html
 
-npm run docker:up
+npm --prefix config run docker:up
     → deploy/docker-compose.yml
 
 Job Jenkins
@@ -173,7 +185,7 @@ Job Jenkins
 | Dado gerado ou amostra | `data/` |
 | Documentação | `docs/` |
 | Script local | `scripts/` |
-| Docker / Compose | `deploy/` |
+| Docker / Compose / nuvem | `deploy/` |
 | CI Jenkins | `jenkins/` |
 | Variável de ambiente documentada | `config/.env.example` |
 | Entrada HTML do operador | só `index.html` na raiz |
