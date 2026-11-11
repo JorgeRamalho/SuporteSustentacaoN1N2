@@ -14,7 +14,11 @@ Não é bug de senha: é **outro cadastro**. O mesmo e-mail/senha do laboratóri
 1. **Rápido:** em `https://suportesustentacaon1n2.vercel.app/`, use **Criar cadastro** (conta só neste navegador).
 2. **Produção:** suba a API no Render (seção B abaixo), troque a URL em `deploy/vercel.json` **ou** crie `frontend/sentinela-config.js` a partir do exemplo — depois **redeploy** na Vercel.
 
-Confirme: `curl https://suportesustentacaon1n2.vercel.app/api/health` → hoje **404** = modo demo ativo.
+Confirme: `curl https://suportesustentacaon1n2.vercel.app/api/health` → hoje **404** = modo demo ativo (não há API atrás do domínio).
+
+**Atalho no console (modo demo):** após a mensagem vermelha, use o botão **「Criar cadastro neste navegador e entrar」** com o mesmo e-mail e senha.
+
+**Login único (produção):** publique a API no Render, depois na Vercel → **Settings → Environment Variables** → `SENTINELA_API_ORIGIN` = `https://sua-api.onrender.com` → **Redeploy**. O build gera `frontend/sentinela-config.js` automaticamente (`scripts/prepare-vercel-deploy.cjs`). O `vercel.json` na **raiz** do repositório passa a ser lido pelo deploy.
 
 ---
 

@@ -1,0 +1,9 @@
+{
+  "name": "sentinela-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Raiz do repositório — build do console para Vercel",
+  "scripts": {
+    "vercel-build": "node scripts/prepare-vercel-deploy.cjs && npm ci --prefix frontend && npm run live:bundle --prefix frontend"
+  }
+}

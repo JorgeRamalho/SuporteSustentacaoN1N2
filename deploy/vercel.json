@@ -3,19 +3,19 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://SUBSTITUA-PELA-URL-DA-SUA-API.onrender.com/api/:path*"
+      "destination": "https://sentinela-api-eavd.onrender.com/api/:path*"
     },
     {
       "source": "/docs",
-      "destination": "https://SUBSTITUA-PELA-URL-DA-SUA-API.onrender.com/docs"
+      "destination": "https://sentinela-api-eavd.onrender.com/docs"
     },
     {
       "source": "/redoc",
-      "destination": "https://SUBSTITUA-PELA-URL-DA-SUA-API.onrender.com/redoc"
+      "destination": "https://sentinela-api-eavd.onrender.com/redoc"
     },
     {
       "source": "/openapi.json",
-      "destination": "https://SUBSTITUA-PELA-URL-DA-SUA-API.onrender.com/openapi.json"
+      "destination": "https://sentinela-api-eavd.onrender.com/openapi.json"
     }
   ]
 }

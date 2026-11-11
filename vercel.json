@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm ci --prefix frontend",
+  "buildCommand": "node scripts/prepare-vercel-deploy.cjs && npm run live:bundle --prefix frontend",
+  "outputDirectory": ".",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://sentinela-api-eavd.onrender.com/api/:path*"
+    },
+    {
+      "source": "/docs",
+      "destination": "https://sentinela-api-eavd.onrender.com/docs"
+    },
+    {
+      "source": "/redoc",
+      "destination": "https://sentinela-api-eavd.onrender.com/redoc"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "https://sentinela-api-eavd.onrender.com/openapi.json"
+    }
+  ]
+}

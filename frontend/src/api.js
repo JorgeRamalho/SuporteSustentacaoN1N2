@@ -35,6 +35,8 @@ export function isPublishedConsole() {
 
 let publishedRuntime = null;
 let publishedRuntimePromise = null;
+let localRuntime = null;
+let localRuntimePromise = null;
 
 function hardDemoHost() {
   if (hasRemoteApi()) return false;
@@ -47,29 +49,73 @@ export function isDemoHost() {
   if (typeof window === "undefined") return false;
   if (hardDemoHost()) return true;
   if (publishedRuntime === "demo") return true;
+  if (localRuntime === "demo") return true;
   return false;
+}
+
+/** Laboratório local sem depender do runtime já escolhido (evita ciclo com isDemoHost). */
+function isLocalLabHost() {
+  if (typeof window === "undefined") return false;
+  if (hardDemoHost() || hasRemoteApi()) return false;
+  if (isFileFront()) return true;
+  if (!isLoopbackHost()) return false;
+  const port = window.location.port;
+  if (port === "5173" || port === "8010") return true;
+  return CONSOLE_PORTS.has(port);
+}
+
+async function probeApiHealth(origin) {
+  const response = await fetch(`${origin}/api/health`, { signal: AbortSignal.timeout(4000) });
+  const contentType = response.headers.get("content-type") || "";
+  if (!response.ok || !contentType.includes("application/json")) return false;
+  const payload = await response.json();
+  return payload?.status === "ok";
+}
+
+async function ensureLocalRuntime() {
+  if (localRuntime !== null) return localRuntime;
+  if (localRuntimePromise) return localRuntimePromise;
+  if (!isLocalLabHost()) {
+    localRuntime = "api";
+    return localRuntime;
+  }
+  localRuntimePromise = (async () => {
+    try {
+      if (await probeApiHealth(LOCAL_API_ORIGIN)) {
+        localRuntime = "api";
+        return localRuntime;
+      }
+    } catch {
+      /* API parada ou porta ocupada */
+    }
+    localRuntime = "demo";
+    return localRuntime;
+  })();
+  return localRuntimePromise;
 }
 
 async function ensurePublishedRuntime() {
   if (publishedRuntime !== null) return publishedRuntime;
   if (publishedRuntimePromise) return publishedRuntimePromise;
-  if (!isPublishedConsole() || hardDemoHost() || hasRemoteApi()) {
+  if (!isPublishedConsole() || hardDemoHost()) {
     publishedRuntime = "api";
     return publishedRuntime;
   }
   publishedRuntimePromise = (async () => {
-    try {
-      const response = await fetch(`${window.location.origin}/api/health`, { signal: AbortSignal.timeout(4000) });
-      const contentType = response.headers.get("content-type") || "";
-      if (response.ok && contentType.includes("application/json")) {
-        const payload = await response.json();
-        if (payload?.status === "ok") {
+    const origins = [];
+    if (hasRemoteApi()) {
+      origins.push(String(window.SENTINELA_API_ORIGIN).replace(/\/$/, ""));
+    }
+    origins.push(window.location.origin);
+    for (const origin of origins) {
+      try {
+        if (await probeApiHealth(origin)) {
           publishedRuntime = "api";
           return publishedRuntime;
         }
+      } catch {
+        /* Vercel sem rewrite, Render dormindo ou URL errada */
       }
-    } catch {
-      /* Vercel sem rewrite ou API fora do ar */
     }
     publishedRuntime = "demo";
     return publishedRuntime;
@@ -82,8 +128,15 @@ export function publishedDemoHelp() {
 }
 
 export async function warmPublishedRuntime() {
-  if (isPublishedConsole() && !hardDemoHost() && !hasRemoteApi()) {
+  if (isPublishedConsole() && !hardDemoHost()) {
     await ensurePublishedRuntime();
+  }
+}
+
+export async function warmRuntime() {
+  await warmPublishedRuntime();
+  if (isLocalLabHost() && localRuntime === null) {
+    await ensureLocalRuntime();
   }
 }
 
@@ -208,9 +261,16 @@ function reject(payload, status) {
   throw error;
 }
 
+function isNetworkFetchError(err) {
+  return err instanceof TypeError && /failed to fetch|networkerror|load failed/i.test(String(err.message || ""));
+}
+
 export async function api(path, options = {}) {
-  if (isPublishedConsole() && publishedRuntime === null && !hardDemoHost() && !hasRemoteApi()) {
+  if (isPublishedConsole() && publishedRuntime === null && !hardDemoHost()) {
     await ensurePublishedRuntime();
+  }
+  if (isLocalLabHost() && localRuntime === null) {
+    await ensureLocalRuntime();
   }
   const headers = requestHeaders(options);
   const next = { ...options, headers };
@@ -249,7 +309,23 @@ export async function api(path, options = {}) {
     assertApiAccess(path, method);
   }
 
-  const response = await fetch(`${apiRoot()}${path}`, next);
+  let response;
+  try {
+    response = await fetch(`${apiRoot()}${path}`, next);
+  } catch (err) {
+    if (isNetworkFetchError(err)) {
+      if (isLocalLabHost() && localRuntime !== "demo") {
+        localRuntime = "demo";
+        return api(path, options);
+      }
+      if (isPublishedConsole() && publishedRuntime !== "demo") {
+        publishedRuntime = "demo";
+        return api(path, options);
+      }
+      throw new Error(isPublishedConsole() ? publishedDemoHelp() : localLabHelp());
+    }
+    throw err;
+  }
   const contentType = response.headers.get("content-type") || "";
   const payload = contentType.includes("application/json") ? await response.json() : await response.text();
   if (!response.ok) {

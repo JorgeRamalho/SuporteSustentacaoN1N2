@@ -1,0 +1,20 @@
+# Blueprint Render (cópia canônica em deploy/render.yaml — mantenha sincronizado)
+services:
+  - type: web
+    name: sentinela-api
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: sentinela-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: SENTINELA_ROOT
+        value: /app
+      - key: SIMULATE
+        value: "true"
+      - key: ALLOW_REAL_ACTIONS
+        value: "false"

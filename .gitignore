@@ -15,6 +15,7 @@ frontend/live-bundle.js
 frontend/live-bundle.css
 frontend/public/live-bundle.js
 frontend/public/live-bundle.css
+frontend/sentinela-config.js
 .idea/
 .vscode/*
 !.vscode/settings.json

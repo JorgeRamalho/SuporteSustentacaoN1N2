@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, isPublishedConsole } from "./api";
+import { api, isDemoHost, isPublishedConsole, warmRuntime } from "./api";
 import { authStorageAvailable, writeSession } from "./auth";
 
 const ROLES = ["N1", "N2", "N3"];
@@ -42,6 +42,7 @@ export default function AuthScreen({ onAuthenticated }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    void warmRuntime();
     if (isPublishedConsole() && !authStorageAvailable()) {
       setError(
         "Este navegador bloqueou o armazenamento local deste site. No Microsoft Edge, permita cookies e dados do site para suportesustentacaon1n2.vercel.app.",
@@ -117,6 +118,19 @@ export default function AuthScreen({ onAuthenticated }) {
     submit("/api/auth/recover");
   }
 
+  function demoLoginNeedsRegister(message) {
+    return (
+      isPublishedConsole() &&
+      isDemoHost() &&
+      /cadastrado|demonstração|compartilham/i.test(String(message || ""))
+    );
+  }
+
+  function quickRegisterFromLogin() {
+    const displayName = name.trim() || email.trim().split("@")[0]?.replace(/[._-]+/g, " ") || "Operador";
+    submit("/api/auth/register", { name: displayName, role: "N1", sector: "Suporte" });
+  }
+
   const heading = {
     login: ["Entrar no Sentinela", "Somente operadores cadastrados acessam o console N1/N2."],
     register: ["Criar cadastro", step === 1 ? "Passo 1 de 2 · dados do operador no Sentinela." : "Passo 2 de 2 · defina a senha de acesso."],
@@ -138,6 +152,13 @@ export default function AuthScreen({ onAuthenticated }) {
         {error ? (
           <p className="notice bad" role="alert">
             {error}
+          </p>
+        ) : null}
+        {view === "login" && demoLoginNeedsRegister(error) ? (
+          <p className="notice">
+            <button type="button" className="primary" disabled={busy} onClick={quickRegisterFromLogin}>
+              {busy ? "Cadastrando..." : "Criar cadastro neste navegador e entrar"}
+            </button>
           </p>
         ) : null}
 
